@@ -16,6 +16,122 @@ textarea {
   touch-action: manipulation;
 }
 
+.task-board-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 19px 13px;
+}
+
+.task-board-heading h2 {
+  font-size: 19px;
+}
+
+.task-board-heading p {
+  margin: 5px 0 0;
+  color: #717b72;
+  font-size: 12px;
+}
+
+.employee-task-board {
+  border-color: #cbd9c2 !important;
+  box-shadow: 0 8px 26px rgb(44 66 43 / 7%);
+}
+
+.employee-task-board .task-board-heading h2 {
+  color: #294632;
+}
+
+.employee-task-count {
+  min-width: 52px;
+  min-height: 52px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  border-radius: 14px;
+  background: #eaf1e3;
+  color: #36533b;
+  font-size: 19px;
+  font-weight: 750;
+}
+
+.employee-task-count small {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.employee-task-nudge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 19px 10px;
+  padding: 11px 13px;
+  border-radius: 9px;
+  background: #f0f5e9;
+  color: #486546;
+}
+
+.employee-task-nudge > span {
+  display: grid;
+  gap: 3px;
+}
+
+.employee-task-nudge b {
+  font-size: 12px;
+}
+
+.employee-task-nudge small {
+  color: #768573;
+  font-size: 10px;
+}
+
+.dash-task-row.is-actionable {
+  border-left: 3px solid #8ba779;
+  padding-left: 10px;
+}
+
+.dash-task-row.is-actionable:hover {
+  background: #f7faf4;
+}
+
+.status-tag.status-action-required {
+  background: #e8f0e1;
+  color: #3f6644;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.employee-overview-panel {
+  margin-top: 18px;
+  padding: 19px;
+  border: 1px solid #e5e9df;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.employee-overview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.employee-overview-heading h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.employee-overview-heading .muted {
+  margin: 0;
+  font-size: 11px;
+}
+
+.employee-overview-panel .dash-stats {
+  margin: 0;
+}
+
 /* Phone-first touch targets, safe areas, and readable form controls. */
 @media (max-width: 680px) {
   .sidebar-scrim {
@@ -162,6 +278,51 @@ textarea {
   .team-invite-form label,
   .department-create-form label {
     font-size: 12px;
+  }
+
+  .task-board-heading {
+    padding: 15px 15px 11px;
+  }
+
+  .task-board-heading h2 {
+    font-size: 18px;
+  }
+
+  .task-board-heading p {
+    max-width: 240px;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .employee-task-count {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .employee-task-nudge {
+    margin-inline: 15px;
+    align-items: flex-start;
+  }
+
+  .employee-task-nudge b {
+    font-size: 11px;
+  }
+
+  .employee-task-nudge small {
+    line-height: 1.4;
+  }
+
+  .dash-task-row.is-actionable {
+    padding-left: 8px;
+  }
+
+  .employee-overview-panel {
+    padding: 15px;
+  }
+
+  .employee-overview-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .toast {

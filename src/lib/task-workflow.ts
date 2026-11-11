@@ -9,7 +9,7 @@ export function canTransitionTaskStatus(task:Pick<Task,'status'|'employee_id'>,a
   const admin=actor.role==='ADMIN'&&actor.active&&!isOwner
   const awaitingReview=task.status==='PENDING_APPROVAL'||task.status==='SUBMITTED'
   if(next==='IN_PROGRESS')return employee&&task.status==='ASSIGNED'
-  if(next==='PENDING_APPROVAL')return employee&&(task.status==='IN_PROGRESS'||task.status==='REJECTED')
+  if(next==='PENDING_APPROVAL')return employee&&(task.status==='ASSIGNED'||task.status==='IN_PROGRESS'||task.status==='REJECTED')
   if(next==='COMPLETED')return admin&&awaitingReview
   if(next==='REJECTED')return admin&&awaitingReview&&rejectionReason.trim().length>0
   return false

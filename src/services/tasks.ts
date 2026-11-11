@@ -22,7 +22,6 @@ export async function createTask(input: { title:string; description:string; prio
  if(input.recurrence_frequency!=='ONCE'&&(!input.recurrence_start_date||!input.scheduled_time||!input.timezone))throw new Error('Recurring tasks require a start date, local due time, and time zone.')
  const { data, error } = await client().rpc('create_user_first_task', { p_title:title,p_description:description,p_priority:input.priority,p_due_at:input.due_at,p_submission_type:input.submission_type,p_submission_config:input.submission_config,p_assignee_ids:assigneeIds,p_recurrence_frequency:input.recurrence_frequency,p_recurrence_start_date:input.recurrence_start_date,p_recurrence_end_date:input.recurrence_end_date,p_timezone:input.timezone,p_scheduled_time:input.scheduled_time }); if (error) throw error; return data
 }
-export async function beginTask(assignmentId:string) { const { error } = await client().rpc('advance_task',{p_assignment_id:assignmentId}); if (error) throw error }
 export async function submitTask(assignmentId:string, submissionType:string, submission:{response_text:string;checkbox_confirmed:boolean;checklist_values:Record<string,boolean>;blob?:Blob}) {
  const db=client(); let evidencePath:string|null=null
  if (!['CHECKBOX','TEXT','CAMERA','MULTIPLE'].includes(submissionType)) throw new Error('This task has an unsupported submission type.')
