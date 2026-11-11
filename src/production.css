@@ -1,0 +1,207 @@
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* Phone-first touch targets, safe areas, and readable form controls. */
+@media (max-width: 680px) {
+  .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    border: 0;
+    background: rgb(20 33 25 / 48%);
+  }
+
+  .app-shell,
+  .team-admin-page,
+  .login-shell,
+  .setup-screen {
+    min-height: 100svh;
+    min-height: 100dvh;
+  }
+
+  .app-shell {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .topbar {
+    top: env(safe-area-inset-top);
+    height: calc(55px + env(safe-area-inset-top));
+    padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+  }
+
+  .sidebar {
+    padding-top: calc(16px + env(safe-area-inset-top));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .nav-link,
+  .icon-button,
+  .button {
+    min-height: 44px;
+  }
+
+  .icon-button {
+    min-width: 44px;
+  }
+
+  .content,
+  .dash-content,
+  .team-admin-content {
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
+
+  .team-admin-top {
+    position: sticky;
+    top: env(safe-area-inset-top);
+    z-index: 4;
+    min-height: 62px;
+    height: auto;
+    padding-block: 8px;
+    padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+    gap: 8px;
+  }
+
+  .team-admin-top > .button {
+    padding-inline: 9px;
+    font-size: 11px;
+  }
+
+  .team-admin-actor {
+    max-width: 45%;
+    min-width: 0;
+  }
+
+  .team-admin-actor > span:last-child {
+    overflow-wrap: anywhere;
+  }
+
+  .team-admin-content .panel {
+    overflow: hidden;
+  }
+
+  .managed-member select,
+  .department-create-form input,
+  .team-invite-form input,
+  .login-card input,
+  .task-toolbar select,
+  .search-box input,
+  .dash-search input,
+  .task-board-toolbar select,
+  .employee-search input,
+  .task-modal textarea {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .active-toggle {
+    min-height: 44px;
+  }
+
+  .active-toggle input,
+  .confirm-check input,
+  .employee-checklist input {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  .remove-access-button {
+    min-height: 44px;
+    padding-inline: 12px;
+  }
+
+  .team-invite-form .button,
+  .department-create-form .button {
+    min-height: 48px;
+  }
+
+  .dash-mobile-nav button {
+    min-height: 48px;
+    min-width: 64px;
+    font-size: 10px;
+  }
+
+  .task-row,
+  .dash-task-row,
+  .review-open-button {
+    min-height: 48px;
+  }
+
+  .task-title,
+  .dash-task-copy > b {
+    font-size: 14px;
+  }
+
+  .task-description,
+  .task-meta,
+  .dash-task-copy > small,
+  .dash-task-meta,
+  .notification-row p {
+    font-size: 11px;
+  }
+
+  .managed-member label,
+  .team-invite-form label,
+  .department-create-form label {
+    font-size: 12px;
+  }
+
+  .toast {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: max(12px, env(safe-area-inset-left));
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 680px) {
+  .dash-layout {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  }
+
+  .dash-topbar {
+    height: calc(55px + env(safe-area-inset-top));
+  }
+
+  .dash-mobile-nav {
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: max(8px, env(safe-area-inset-top)) 0 0;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 16px 16px 0 0;
+    padding: 18px 16px calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .modal .button,
+  .dash-mobile-nav button {
+    min-height: 44px;
+  }
+}

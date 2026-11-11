@@ -1,0 +1,49 @@
+-- Run against the linked Supabase project with:
+-- npx supabase db query --remote --read-only --file tests/rls_access.sql
+-- Catalog-only assertions: no Auth users or database rows are created.
+with expected_tables(name) as (
+ values ('profiles'),('departments'),('tasks'),('task_assignments'),('submissions'),('notifications'),('task_templates'),('task_recurrences'),('push_subscriptions'),('audit_logs')
+), checks as (
+ select
+  not exists(select 1 from expected_tables e where not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=e.name and c.relrowsecurity)) as all_tables_rls,
+  not has_column_privilege('authenticated','public.profiles','role','UPDATE') as role_column_protected,
+  not has_function_privilege('anon','public.manage_profile(uuid,text,uuid,boolean,public.app_role)','EXECUTE') as anon_cannot_manage_profiles,
+  not has_function_privilege('anon','public.create_task_with_assignments(text,text,public.task_priority,timestamptz,public.submission_kind,uuid,uuid[])','EXECUTE') as anon_cannot_create_tasks,
+  not has_function_privilege('anon','public.submit_task(uuid,text,text,boolean)','EXECUTE') as anon_cannot_submit,
+  not has_function_privilege('anon','public.review_task(uuid,text,text)','EXECUTE') as anon_cannot_review,
+  not (select prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='review_task') as review_rpc_is_invoker,
+  (select prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='review_task') as review_impl_is_secdef,
+  (select pg_get_functiondef(p.oid) ilike '%An administrator cannot review their own assignment%' and pg_get_functiondef(p.oid) ilike '%Only administrators can review tasks%' from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='review_task') as review_blocks_employee_and_self,
+  (select pg_get_functiondef(p.oid) ilike '%Feedback is required when returning a task%' and pg_get_functiondef(p.oid) ilike '%insert into public.audit_logs%' and pg_get_functiondef(p.oid) ilike '%insert into public.notifications%' from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='review_task') as review_requires_reason_and_records_events,
+  exists(select 1 from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='task_assignments' and t.tgname='task_assignment_enforce_transitions' and not t.tgisinternal) as assignment_transition_guard_exists,
+  (select pg_get_functiondef(p.oid) ilike '%Only the active assignee can start this task%' and pg_get_functiondef(p.oid) ilike '%Only the active assignee can submit this task%' and pg_get_functiondef(p.oid) ilike '%Invalid task status transition%' from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='enforce_assignment_transitions') as transition_guard_checks_owner_and_state,
+  not has_function_privilege('authenticated','private.bootstrap_initial_admin(text)','EXECUTE') as bootstrap_owner_only,
+  not has_function_privilege('service_role','private.bootstrap_initial_admin(text)','EXECUTE') as service_role_cannot_bootstrap,
+  not (select prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='manage_profile') as profile_rpc_is_invoker,
+  has_function_privilege('authenticated','public.manage_profile(uuid,text,uuid,boolean,public.app_role)','EXECUTE') as admin_profile_rpc_available,
+  not exists(select 1 from pg_policies where schemaname='public' and tablename in ('task_assignments','submissions') and cmd in ('INSERT','UPDATE','DELETE','ALL') and 'authenticated'=any(roles)) as no_direct_assignment_submission_writes,
+  exists(select 1 from pg_policies where schemaname='public' and tablename='task_assignments' and cmd='SELECT' and qual ilike '%employee_id = auth.uid()%') as assignment_reads_scoped,
+  exists(select 1 from pg_policies where schemaname='public' and tablename='submissions' and cmd='SELECT' and qual ilike '%employee_id = auth.uid()%') as submission_reads_scoped,
+  exists(select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='task_evidence_upload_own_camera_assignment' and cmd='INSERT') as camera_upload_policy_exists,
+  not exists(select 1 from storage.buckets where id='task-evidence' and public) as evidence_bucket_private,
+  has_function_privilege('authenticated','public.create_user_first_task(text,text,public.task_priority,timestamptz,public.submission_kind,jsonb,uuid[],text,date,date,text,time)','EXECUTE') as authenticated_task_rpc_available,
+  not has_function_privilege('anon','public.create_user_first_task(text,text,public.task_priority,timestamptz,public.submission_kind,jsonb,uuid[],text,date,date,text,time)','EXECUTE') as anon_cannot_create_user_first_task,
+  (select prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='create_user_first_task') as create_task_impl_secdef,
+  (select pg_get_functiondef(p.oid) ilike '%Only active administrators can assign tasks%' and pg_get_functiondef(p.oid) ilike '%active employee%' from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='create_user_first_task') as create_task_checks_admin_and_assignees,
+  has_function_privilege('authenticated','public.submit_user_first_task(uuid,text,boolean,jsonb,text)','EXECUTE') as authenticated_submission_rpc_available,
+  not has_function_privilege('anon','public.submit_user_first_task(uuid,text,boolean,jsonb,text)','EXECUTE') as anon_cannot_submit_user_first_task,
+  (select prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='submit_user_first_task') as submit_task_impl_secdef,
+  (select pg_get_functiondef(p.oid) ilike '%You can only submit your own active assignment%' and pg_get_functiondef(p.oid) ilike '%Complete every checklist item%' and pg_get_functiondef(p.oid) ilike '%A camera photo is required%' from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='submit_user_first_task') as submit_checks_owner_and_proof,
+  not has_function_privilege('authenticated','public.generate_recurring_task_instance(uuid,date)','EXECUTE') and has_function_privilege('service_role','public.generate_recurring_task_instance(uuid,date)','EXECUTE') as recurrence_rpc_service_only,
+  exists(select 1 from pg_indexes where schemaname='public' and indexname='tasks_recurrence_instance_unique') as recurrence_instances_unique,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='tasks' and column_name='submission_config') and exists(select 1 from information_schema.columns where table_schema='public' and table_name='submissions' and column_name='checklist_values') as proof_configuration_columns_exist,
+  exists(select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='task_evidence_upload_own_camera_assignment' and with_check ilike '%MULTIPLE%') as multiple_photo_upload_scoped,
+  exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='notifications') as notifications_realtime_enabled,
+  exists(select 1 from pg_trigger where tgname='notification_push_after_insert' and not tgisinternal) as notification_push_trigger_exists,
+  not has_function_privilege('anon','private.enqueue_notification_push()','EXECUTE') and not has_function_privilege('authenticated','private.enqueue_notification_push()','EXECUTE') as push_trigger_helper_private,
+  (select pg_get_functiondef(p.oid) ilike '%extensions.hmac%' and pg_get_functiondef(p.oid) ilike '%notification_push_hook_secret%' from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='enqueue_notification_push') as push_webhook_signed_from_vault,
+  exists(select 1 from pg_extension where extname='pg_cron') and exists(select 1 from pg_extension where extname='pg_net') as secure_scheduler_extensions_installed,
+  exists(select 1 from cron.job where jobname='generate-recurring-tasks-every-15-minutes' and schedule='*/15 * * * *' and command ilike '%x-cron-signature%' and command ilike '%extensions.hmac%' and command not ilike '%x-cron-secret%') as recurring_generation_scheduled_with_signature
+)
+select 1 / case when all_tables_rls and role_column_protected and anon_cannot_manage_profiles and anon_cannot_create_tasks and anon_cannot_submit and anon_cannot_review and review_rpc_is_invoker and review_impl_is_secdef and review_blocks_employee_and_self and review_requires_reason_and_records_events and assignment_transition_guard_exists and transition_guard_checks_owner_and_state and bootstrap_owner_only and service_role_cannot_bootstrap and profile_rpc_is_invoker and admin_profile_rpc_available and no_direct_assignment_submission_writes and assignment_reads_scoped and submission_reads_scoped and camera_upload_policy_exists and evidence_bucket_private and authenticated_task_rpc_available and anon_cannot_create_user_first_task and create_task_impl_secdef and create_task_checks_admin_and_assignees and authenticated_submission_rpc_available and anon_cannot_submit_user_first_task and submit_task_impl_secdef and submit_checks_owner_and_proof and recurrence_rpc_service_only and recurrence_instances_unique and proof_configuration_columns_exist and multiple_photo_upload_scoped and notifications_realtime_enabled and notification_push_trigger_exists and push_trigger_helper_private and push_webhook_signed_from_vault and secure_scheduler_extensions_installed and recurring_generation_scheduled_with_signature then 1 else 0 end as all_rls_assertions_passed
+from checks;

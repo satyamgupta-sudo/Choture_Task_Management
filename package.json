@@ -1,0 +1,44 @@
+{
+  "name": "restaurant-task-manager",
+  "version": "1.0.0",
+  "description": "Mobile-first restaurant team task management PWA",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:rls": "npx supabase db query --remote --read-only --file tests/rls_access.sql",
+    "lint": "oxlint src tests vite.config.ts supabase/functions",
+    "audit:production": "npm audit --omit=dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@firebase/app": "^0.16.5",
+    "@firebase/messaging": "^0.13.3",
+    "@supabase/supabase-js": "^2.119.0",
+    "lucide-react": "^1.72.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "jsdom": "^31.0.0",
+    "oxlint": "^1.93.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}
