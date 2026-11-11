@@ -22,12 +22,41 @@ export async function createTask(input: { title:string; description:string; prio
  if(input.recurrence_frequency!=='ONCE'&&(!input.recurrence_start_date||!input.scheduled_time||!input.timezone))throw new Error('Recurring tasks require a start date, local due time, and time zone.')
  const { data, error } = await client().rpc('create_user_first_task', { p_title:title,p_description:description,p_priority:input.priority,p_due_at:input.due_at,p_submission_type:input.submission_type,p_submission_config:input.submission_config,p_assignee_ids:assigneeIds,p_recurrence_frequency:input.recurrence_frequency,p_recurrence_start_date:input.recurrence_start_date,p_recurrence_end_date:input.recurrence_end_date,p_timezone:input.timezone,p_scheduled_time:input.scheduled_time }); if (error) throw error; return data
 }
-export async function submitTask(assignmentId:string, submissionType:string, submission:{response_text:string;checkbox_confirmed:boolean;checklist_values:Record<string,boolean>;blob?:Blob}) {
+export async function submitTask(assignmentId:string, submissionType:string, submission:{response_text:string;checkbox_confirmed:boolean;checklist_values:Record<string,boolean>;required_proofs?:string[];blob?:Blob}) {
  const db=client(); let evidencePath:string|null=null
  if (!['CHECKBOX','TEXT','CAMERA','MULTIPLE'].includes(submissionType)) throw new Error('This task has an unsupported submission type.')
- if (['CAMERA','MULTIPLE'].includes(submissionType)) { const blob=submission.blob;if(!blob) throw new Error('Capture a photo before submitting.');if(blob.type!=='image/jpeg')throw new Error('Camera evidence must be a JPEG photo.');if(blob.size>5*1024*1024)throw new Error('Photo evidence must be 5 MB or smaller.');const { data: { user } }=await db.auth.getUser();if(!user)throw new Error('Please sign in again before submitting.');const path=`${user.id}/${assignmentId}/${crypto.randomUUID()}.jpg`;const { error: uploadError }=await db.storage.from('task-evidence').upload(path,blob,{contentType:'image/jpeg',upsert:false});if(uploadError) throw uploadError; evidencePath=path }
- if(['TEXT','MULTIPLE'].includes(submissionType)&&!submission.response_text.trim()) throw new Error('Enter a response before submitting.')
+ const proofs=submission.required_proofs??(submissionType==='MULTIPLE'?['CHECKBOX','TEXT','CAMERA']:[submissionType])
+ if(proofs.includes('TEXT')&&!submission.response_text.trim()) throw new Error('Enter a response before submitting.')
+ if (proofs.includes('CAMERA')) { const blob=submission.blob;if(!blob) throw new Error('Capture a photo before submitting.');if(blob.type!=='image/jpeg')throw new Error('Camera evidence must be a JPEG photo.');if(blob.size>5*1024*1024)throw new Error('Photo evidence must be 5 MB or smaller.');const { data: { user } }=await db.auth.getUser();if(!user)throw new Error('Please sign in again before submitting.');const path=`${user.id}/${assignmentId}/${crypto.randomUUID()}.jpg`;const { error: uploadError }=await db.storage.from('task-evidence').upload(path,blob,{contentType:'image/jpeg',upsert:false});if(uploadError) throw uploadError; evidencePath=path }
  try{const { error }=await db.rpc('submit_user_first_task', { p_assignment_id:assignmentId,p_response_text:submission.response_text.trim()||null,p_checkbox_confirmed:submission.checkbox_confirmed,p_checklist_values:submission.checklist_values,p_evidence_path:evidencePath });if(error)throw error}catch(error){if(evidencePath)await db.storage.from('task-evidence').remove([evidencePath]);throw error}
+}
+export async function bulkSubmitTasks(submissions:{assignment_id:string;response_text:string;checkbox_confirmed:boolean;checklist_values:Record<string,boolean>;required_proofs:string[];blob?:Blob}[]) {
+ if(!submissions.length)throw new Error('Select at least one task to submit.')
+ const db=client(),{data:{user}}=await db.auth.getUser()
+ if(!user)throw new Error('Please sign in again before submitting.')
+ const uploaded:string[]=[]
+ try{
+  const payload=[]
+  for(const submission of submissions){
+   let evidencePath:string|null=null
+   if(submission.required_proofs.includes('CAMERA')){
+    const blob=submission.blob
+    if(!blob||blob.type!=='image/jpeg'||blob.size>5*1024*1024)throw new Error('Each camera task needs a JPEG photo of 5 MB or less.')
+    evidencePath=`${user.id}/${submission.assignment_id}/${crypto.randomUUID()}.jpg`
+    const {error}=await db.storage.from('task-evidence').upload(evidencePath,blob,{contentType:'image/jpeg',upsert:false})
+    if(error)throw error
+    uploaded.push(evidencePath)
+   }
+   payload.push({assignment_id:submission.assignment_id,response_text:submission.response_text.trim()||null,checkbox_confirmed:submission.checkbox_confirmed,checklist_values:submission.checklist_values,evidence_path:evidencePath})
+  }
+  const {error}=await db.rpc('submit_user_first_tasks',{p_submissions:payload})
+  if(error)throw error
+ }catch(error){if(uploaded.length)await db.storage.from('task-evidence').remove(uploaded);throw error}
+}
+export async function bulkReviewTasks(assignmentIds:string[],decision:'approve'|'reject',comment='') {
+ if(!assignmentIds.length)throw new Error('Select at least one submission to review.')
+ const {error}=await client().rpc('review_user_first_tasks',{p_assignment_ids:[...new Set(assignmentIds)],p_decision:decision,p_comment:comment})
+ if(error)throw error
 }
 export async function getEvidencePreview(path:string):Promise<string>{
  if(!path||path.startsWith('/')||path.includes('..'))throw new Error('Invalid evidence path.')

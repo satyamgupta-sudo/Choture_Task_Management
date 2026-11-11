@@ -366,3 +366,60 @@ textarea {
     min-height: 44px;
   }
 }
+
+/* Compact, comfortable task actions and phone navigation. */
+.dash-menu-button{display:none;border:0;background:transparent;color:#34453a;width:44px;height:44px;place-items:center;border-radius:10px;cursor:pointer}
+.dash-menu-button:hover{background:#f0f3ec}
+.dash-sidebar-scrim{display:none}
+.proof-picker{border:1px solid #e4e9e1;border-radius:11px;padding:12px;margin:12px 0}
+.proof-picker legend{padding:0 5px;font-weight:700;color:#39483d;font-size:12px}
+.proof-picker label{display:flex!important;align-items:center;gap:10px;min-height:46px;padding:8px 10px!important;margin:3px 0!important;border-radius:8px;background:#f8faf6;font-size:13px!important}
+.proof-picker input,.bulk-action-bar input,.bulk-task-row>input{width:20px;height:20px;accent-color:#3f7650;flex:none}
+.bulk-action-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;margin:8px 0;border:1px solid #e3e9df;border-radius:11px;background:#f8faf6}
+.bulk-action-bar label{display:flex;align-items:center;gap:9px;min-height:44px;font-size:12px;font-weight:650;color:#435343}
+.bulk-action-bar>span{margin-left:auto;color:#798478;font-size:11px}
+.bulk-task-row{display:flex;align-items:center;gap:11px;border-top:1px solid #f0f0eb}
+.bulk-task-row>.dash-task-row{flex:1;min-width:0;border-top:0}
+.task-submit-button{min-height:54px;font-size:15px;box-shadow:0 6px 16px rgb(32 67 52 / 15%)}
+.task-modal .submit-area{padding:15px 0 8px;background:#fff}
+.task-modal .submit-area .task-submit-button{position:sticky;bottom:0;z-index:2}
+@media(max-width:680px){
+ .dash-layout{display:block;padding:env(safe-area-inset-top) 0 0}
+ .dash-sidebar{position:fixed;z-index:31;inset:0 auto 0 0;width:min(84vw,310px);height:100dvh;transform:translateX(-105%);transition:transform .2s ease;box-shadow:10px 0 35px rgb(19 32 24 / 18%);overflow-y:auto}
+ .dash-sidebar.open{display:flex;transform:translateX(0)}
+ .dash-sidebar-scrim{display:block;position:fixed;z-index:30;inset:0;border:0;background:rgb(20 33 25 / 48%)}
+ .dash-topbar{height:58px;padding:0 12px;gap:8px;position:sticky;top:env(safe-area-inset-top);z-index:10}
+ .dash-menu-button{display:grid;flex:none}
+ .dash-mobile-brand{display:flex;align-items:center;gap:6px;font-weight:750;font-size:15px;white-space:nowrap}
+ .dash-breadcrumb{display:none}
+ .dash-top-user{margin-left:auto}
+ .dash-content{padding:18px 13px 28px}
+ .dash-heading{align-items:flex-start;gap:10px;margin-bottom:15px}
+ .dash-heading h1{font-size:25px}
+ .dash-heading .muted{font-size:12px;line-height:1.45}
+ .dash-heading .button{min-height:44px;padding:8px 10px}
+ .dash-stats{gap:7px;margin-bottom:12px}
+ .dash-stat{padding:11px;border-radius:10px}
+ .dash-stat>b{font-size:23px;margin:6px 0 1px}
+ .dash-stat>small{font-size:9px;line-height:1.3}
+ .panel.dash-panel{padding:12px;border-radius:11px}
+ .task-board-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .task-board-toolbar select,.task-board-date{width:100%;min-height:44px;max-width:none;font-size:14px}
+ .dash-search{min-height:44px;grid-column:1/-1}
+ .dash-search input{font-size:16px}
+ .task-board-heading{padding:12px 12px 10px}
+ .employee-task-nudge{margin:0 12px 8px}
+ .bulk-action-bar{align-items:stretch;gap:8px;padding:10px;margin:6px 0}
+ .bulk-action-bar>span{margin:auto 0 auto auto}
+ .bulk-action-bar>.button{width:100%;min-height:48px;font-size:14px}
+ .bulk-task-row>input{width:23px;height:23px}
+ .task-modal{display:block;max-height:calc(100dvh - env(safe-area-inset-top));overflow-y:auto;overscroll-behavior:contain;padding:16px 14px calc(14px + env(safe-area-inset-bottom))}
+ .task-modal .modal-head{position:sticky;top:-16px;z-index:4;background:#fff;padding:10px 0 12px;margin:0 0 12px}
+ .task-modal .submit-area{position:sticky;bottom:calc(-14px - env(safe-area-inset-bottom));z-index:3;margin-inline:-14px;padding:12px 14px calc(14px + env(safe-area-inset-bottom));border-top:1px solid #e7ebe5;background:rgb(255 255 255 / 97%);box-shadow:0 -8px 22px rgb(28 43 31 / 8%)}
+ .task-modal .task-submit-button{min-height:54px}
+ .task-modal .assignment-history{padding-bottom:12px}
+ .modal-backdrop{padding-top:env(safe-area-inset-top)}
+}
+.bulk-action-hint{margin:0 0 10px;color:#788378;font-size:11px;line-height:1.45}
+.review-queue-person input{width:19px;height:19px;accent-color:#3f7650;flex:none}
+.review-queue-person input:disabled{opacity:.4}
