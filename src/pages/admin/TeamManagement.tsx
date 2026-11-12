@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowLeft, Check, MailPlus, Plus, Users, UserX } from 'lucide-react'
+import { ArrowLeft, Check, Plus, Users, UserX } from 'lucide-react'
 import type { Department, Profile } from '../../types'
-import { createDepartment, inviteTeamMember, manageProfile } from '../../services/team'
+import { createDepartment, createTeamMember, manageProfile } from '../../services/team'
 import { getDepartments, getProfiles } from '../../services/tasks'
 import './team-management.css'
 
@@ -16,6 +16,8 @@ export default function TeamManagement({ onBack, actor }: { onBack: () => void; 
   const [notice, setNotice] = useState('')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [initialPassword, setInitialPassword] = useState('')
+  const [confirmInitialPassword, setConfirmInitialPassword] = useState('')
   const [departmentName, setDepartmentName] = useState('')
   const [departmentDescription, setDepartmentDescription] = useState('')
 
@@ -61,19 +63,29 @@ export default function TeamManagement({ onBack, actor }: { onBack: () => void; 
     }
   }
 
-  async function invite(e: React.FormEvent) {
+  async function createEmployee(e: React.FormEvent) {
     e.preventDefault()
-    setSaving('invite')
+    if (initialPassword.length < 12) {
+      setError('Use an initial password with at least 12 characters.')
+      return
+    }
+    if (initialPassword !== confirmInitialPassword) {
+      setError('The passwords do not match.')
+      return
+    }
+    setSaving('create')
     setError('')
     setNotice('')
     try {
-      await inviteTeamMember({ email, fullName })
-      setNotice(`Invitation sent to ${email.trim()}. The new account will have employee access.`)
+      await createTeamMember({ email, fullName, password: initialPassword })
+      setNotice(`Employee account created for ${email.trim()}. Share the initial password securely.`)
       setFullName('')
       setEmail('')
+      setInitialPassword('')
+      setConfirmInitialPassword('')
       await refresh()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not invite this employee.')
+      setError(cause instanceof Error ? cause.message : 'Could not create this employee account.')
     } finally {
       setSaving('')
     }
@@ -102,7 +114,7 @@ export default function TeamManagement({ onBack, actor }: { onBack: () => void; 
       <div className="team-admin-actor"><span className="top-avatar">{actor.full_name.slice(0, 1).toUpperCase()}</span><span>{actor.full_name}<small>Administrator</small></span></div>
     </header>
     <div className="team-admin-content">
-      <div className="page-heading"><div><p className="eyebrow">ADMINISTRATION</p><h1>Team & access</h1><p className="muted">Invite staff and manage account access.</p></div></div>
+      <div className="page-heading"><div><p className="eyebrow">ADMINISTRATION</p><h1>Team & access</h1><p className="muted">Create employee accounts and manage access.</p></div></div>
       {error && <div className="inline-alert"><span>{error}</span><button onClick={() => setError('')} aria-label="Dismiss error">×</button></div>}
       {notice && <div className="team-notice" role="status"><Check size={15}/>{notice}</div>}
 
@@ -119,12 +131,14 @@ export default function TeamManagement({ onBack, actor }: { onBack: () => void; 
               <div className="member-actions">{member.active && member.id !== actor.id && <button className="remove-access-button" disabled={saving === member.id} onClick={() => { if (window.confirm(`Remove ${member.full_name}'s sign-in access? Their task and audit history will be kept.`)) void update(member, { active: false }) }}><UserX size={14}/>Remove access</button>}</div>
             </article>
           })}
-        </div> : <div className="team-empty-state"><Users size={20}/><b>No user profiles yet</b><p>Invite the first employee below.</p></div>}
-        <form className="team-invite-form" onSubmit={event => void invite(event)}>
-          <div><h3>Invite an employee</h3><p className="muted">Supabase sends a sign-in invitation. New accounts are always employees.</p></div>
+        </div> : <div className="team-empty-state"><Users size={20}/><b>No user profiles yet</b><p>Create the first employee account below.</p></div>}
+        <form className="team-create-form" onSubmit={event => void createEmployee(event)}>
+          <div><h3>Create an employee account</h3><p className="muted">The account is ready to use immediately. Share the initial password securely; employees can change it from Profile & settings.</p></div>
           <label>Full name<input required minLength={1} maxLength={120} value={fullName} onChange={event => setFullName(event.target.value)} placeholder="e.g. Maya Patel"/></label>
           <label>Email address<input required type="email" autoComplete="off" maxLength={254} value={email} onChange={event => setEmail(event.target.value)} placeholder="maya@restaurant.com"/></label>
-          <button className="button button-primary" disabled={saving === 'invite'}><MailPlus size={16}/>{saving === 'invite' ? 'Sending…' : 'Invite employee'}</button>
+          <label>Initial password<input required type="password" autoComplete="new-password" minLength={12} maxLength={128} value={initialPassword} onChange={event => setInitialPassword(event.target.value)} placeholder="At least 12 characters"/></label>
+          <label>Confirm password<input required type="password" autoComplete="new-password" minLength={12} maxLength={128} value={confirmInitialPassword} onChange={event => setConfirmInitialPassword(event.target.value)} placeholder="Enter it again"/></label>
+          <button className="button button-primary" disabled={saving === 'create'}><Plus size={16}/>{saving === 'create' ? 'Creating account…' : 'Create employee'}</button>
         </form>
       </section>
 

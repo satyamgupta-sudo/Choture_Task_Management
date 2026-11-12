@@ -215,7 +215,7 @@ textarea {
 
   .managed-member select,
   .department-create-form input,
-  .team-invite-form input,
+  .team-create-form input,
   .login-card input,
   .task-toolbar select,
   .search-box input,
@@ -244,7 +244,7 @@ textarea {
     padding-inline: 12px;
   }
 
-  .team-invite-form .button,
+  .team-create-form .button,
   .department-create-form .button {
     min-height: 48px;
   }
@@ -275,7 +275,7 @@ textarea {
   }
 
   .managed-member label,
-  .team-invite-form label,
+  .team-create-form label,
   .department-create-form label {
     font-size: 12px;
   }
@@ -423,3 +423,11 @@ textarea {
 .bulk-action-hint{margin:0 0 10px;color:#788378;font-size:11px;line-height:1.45}
 .review-queue-person input{width:19px;height:19px;accent-color:#3f7650;flex:none}
 .review-queue-person input:disabled{opacity:.4}
+.password-panel{padding:18px;margin-bottom:14px}
+.password-panel h3{margin:0 0 5px}
+.password-panel>.muted,.password-panel>div>.muted{font-size:12px;margin:0 0 12px}
+.password-change-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) auto;gap:12px;align-items:end}
+.password-change-form label{font-size:11px;color:#68756b}
+.password-change-form input{display:block;width:100%;min-height:44px;margin-top:5px;border:1px solid #e3e7e1;border-radius:7px;padding:10px 12px;font-size:16px}
+.password-change-form .button{min-height:44px}
+@media(max-width:680px){.password-change-form{grid-template-columns:1fr}.password-change-form .button{width:100%}}
